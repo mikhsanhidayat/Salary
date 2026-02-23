@@ -1,11 +1,16 @@
 import React from 'react'
 
-const page = () => {
+import Sidebar from '../../components/sidebar';
+
+
+const page = (    ) => {
   return (
-    <div>
-      <h1>dashboadr
-        
-      </h1>
+    <div className="flex bg-white">
+      <Sidebar /> 
+      <div className="p-4 text-black">
+        <h1 className=" text-5xl   bg font-bold">Dashboard</h1>
+        <p>Welcome to the admin dashboard.</p>
+      </div>
     </div>
   )
 }
