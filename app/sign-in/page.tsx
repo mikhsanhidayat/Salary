@@ -1,57 +1,90 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function SignIn() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Login gagal");
+      }
+
+      localStorage.setItem("access_token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center   bg-cover justify-center  p-6">
-      <main className="w-full max-w-md rounded-2xl  p-10 shadow-xl border border-gray-100">
-        
-        {/* Header Section */}
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-extrabold text-gray-900">Selamat Datang</h1>
-          <p className="mt-2 text-sm text-gray-500">Silakan masuk ke akun Anda</p>
-        </div>
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+      <main className="w-full max-w-md rounded-2xl bg-white p-8 shadow dark:bg-zinc-900">
+        <h1 className="mb-6 text-center text-2xl font-semibold">Sign In</h1>
 
-        {/* Form Section */}
-        <form className="flex flex-col gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            <input 
-              type="text" 
-              placeholder="Masukkan username" 
-              className="w-full rounded-lg border border-gray-300 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all"
-            />
-          </div>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input
+            type="email"
+            placeholder="admin@mail.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-lg border px-3 py-2"
+            required
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              className="w-full rounded-lg border border-gray-300 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all"
-            />
-          </div>
+          <input
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-lg border px-3 py-2"
+            required
+          />
 
-          <div className="flex items-center justify-between text-xs mt-1">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="rounded border-gray-300" />
-              <span className="text-gray-600">Ingat saya</span>
-            </label>
-            <a href="#" className="text-blue-600 hover:underline">Lupa password?</a>
-          </div>
+          {error && <p className="text-sm text-red-500">{error}</p>}
 
-          <button 
-            type="submit" 
-            className="mt-4 w-full rounded-lg bg-blue-600 p-3 tex   t-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-md"
+          <button
+            disabled={loading}
+            className="w-full rounded-lg bg-black py-2 text-white disabled:opacity-50"
           >
-            Sign In
+            {loading ? "Logging in..." : "Login"}   
           </button>
-        </form>
 
-        {/* Footer Section */}
-        <p className="mt-8 text-center text-sm text-gray-500">
-          Belum punya akun?{' '}
-          <a href="#" className="font-semibold text-blue-600 hover:underline">Daftar sekarang</a>
-        </p>
+           {/* dibawah ini untuk tombol ke register */}
+           <p className="mt-4 text-center text-sm text-zinc-600">
+            Belum punya akun?{" "}
+            <button onClick={() => router.push("/register")} className="font-semibold text-black underline">
+              Register di sini
+            </button>
+          </p>
+        </form>
       </main>
     </div>
   );
