@@ -13,7 +13,7 @@ export default function Header() {
     if (pathname.includes("/karyawan")) return "Karyawan";
     if (pathname.includes("/user")) return "User";
     if (pathname.includes("/konfigurasi")) return "Konfigurasi";
-    return "Master";
+    return "Dashboard";
   };
 
   return (
