@@ -6,11 +6,12 @@ import { usePathname } from "next/navigation";
 
 export default function Sidebar() {
   const pathname = usePathname();
-  // State untuk mengontrol dropdown Master (default: true)
-  const [isMasterOpen, setIsMasterOpen] = useState(true);
+  
+  // Mengubah default state menjadi false agar dropdown tertutup saat pertama kali dibuka
+  const [isMasterOpen, setIsMasterOpen] = useState(false);
 
   return (
-    <div className="w-66 h-screen bg-[#004d73] text-white flex flex-col overflow-y-auto font-sans shadow-xl border-r border-white/10">
+    <div className="w-66 fixed z-20 h-screen bg-[#004d73] text-white flex flex-col overflow-y-auto font-sans shadow-xl border-r border-white/10">
       
       {/* Logo Section */}
       <div className="flex items-center gap-3 p-6 mb-4">
@@ -54,22 +55,22 @@ export default function Sidebar() {
           {/* Sub-menu Master dengan garis vertikal */}
           <div 
             className={`ml-6 mt-2 space-y-1 border-l border-white/20 overflow-hidden transition-all duration-300 ${
-              isMasterOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+              isMasterOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0 pointer-events-none"
             }`}
           >
-            <SubMenuItem href="/dashboard/divisi" iconClass="fa-solid fa-building" label="Divisi" />
-            <SubMenuItem href="/dashboard/jabatan" iconClass="fa-solid fa-briefcase" label="Jabatan" />
-            <SubMenuItem href="/dashboard/karyawan" iconClass="fa-solid fa-user-group" label="Karyawan" />
-            <SubMenuItem href="/dashboard/user" iconClass="fa-solid fa-id-card" label="User" />
-            <SubMenuItem href="/dashboard/konfigurasi" iconClass="fa-solid fa-sliders" label="Konfigurasi" />
+            <SubMenuItem href="/divisi" iconClass="fa-solid fa-building" label="Divisi" />
+            <SubMenuItem href="/jabatan" iconClass="fa-solid fa-briefcase" label="Jabatan" />
+            <SubMenuItem href="/karyawan" iconClass="fa-solid fa-user-group" label="Karyawan" />
+            <SubMenuItem href="/user" iconClass="fa-solid fa-id-card" label="User" />
+            <SubMenuItem href="/konfigurasi" iconClass="fa-solid fa-sliders" label="Konfigurasi" />
           </div>
         </div>
 
         {/* Menu Utama Lainnya */}
         <div className="pt-2 space-y-1">
-          <MenuLink href="/dashboard/presensi" iconClass="fa-regular fa-calendar-check" label="Presensi" />
-          <MenuLink href="/dashboard/cuti" iconClass="fa-regular fa-calendar-minus" label="Cuti" />
-          <MenuLink href="/dashboard/gaji" iconClass="fa-solid fa-money-bill-1-wave" label="Gaji" />
+          <MenuLink href="/presensi" iconClass="fa-regular fa-calendar-check" label="Presensi" />
+          <MenuLink href="/cuti" iconClass="fa-regular fa-calendar-minus" label="Cuti" />
+          <MenuLink href="/gaji" iconClass="fa-solid fa-money-bill-1-wave" label="Gaji" />
         </div>
 
       </nav>
