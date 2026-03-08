@@ -20,7 +20,7 @@ export default function UserPage() {
         <div className="lg:col-span-4 rounded-3xl bg-white p-8 shadow-xl shadow-slate-200/50 dark:bg-zinc-900 dark:shadow-none border border-slate-100 dark:border-zinc-800 h-fit lg:sticky lg:top-24">
           <div className="mb-6 flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-              <i className="fi fi-rr-plus-small"></i>
+              <i className="fa-solid fa-user-plus"></i>
             </div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
               Tambah User
@@ -66,9 +66,9 @@ export default function UserPage() {
 
             {/* Custom Dropdown Role - Disesuaikan dengan Foto */}
        <div className="mb-4">
-                                <label htmlFor="role" className="font-bold text-gray-800">Role</label>
+                                <label htmlFor="role" className="font-bold text-gray-800 dark:text-gray-300 ">Role</label>
                                 <select id="role" name="role"
-                                    className="border border-gray-200 bg-gray-100 rounded-xl py-2 px-4 w-full my-1">
+                                    className="border border-gray-200 dark:bg-zinc-800 text-gray-500 rounded-xl py-2 px-4 w-full my-1">
                                     <option value="">Pilih Role</option>
                                     <option value="">Admin</option>
                                     <option value="">User</option>

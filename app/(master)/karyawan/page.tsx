@@ -20,7 +20,7 @@ export default function KaryawanPage() {
         <div className="lg:col-span-4 rounded-3xl bg-white p-8 shadow-xl shadow-slate-200/50 dark:bg-zinc-900 dark:shadow-none border border-slate-100 dark:border-zinc-800 h-fit lg:sticky lg:top-24">
           <div className="mb-6 flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-[#004d73]/10 flex items-center justify-center text-[#004d73]">
-              <i className="fi fi-rr-plus-small text-xl"></i>
+              <i className="fa-solid fa-user-plus text-xl"></i>
             </div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
               Tambah Karyawan

@@ -19,8 +19,8 @@ export default function MasterLayout({
         <Header />
 
         {/* Konten Halaman (Divisi/Jabatan/Karyawan) */}
-        <main className="flex-1 p-6 overflow-y-auto">
-          <div className="mx-auto max-w-7xl">
+        <main className="flex-1  ">
+          <div className="mx-auto ">
             {children}
           </div>
         </main>
