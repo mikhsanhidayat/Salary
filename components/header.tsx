@@ -42,6 +42,14 @@ export default function Header() {
     return name ? name.charAt(0).toUpperCase() : "U";
   };
 
+  // function untuk cek akun ada atau tidak, jika tidak ada redirect ke sign-in
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (!userData) {
+      window.location.href = "/sign-in";
+    }
+  }, []);
+
   return (
     <header className="sticky pl-80 top-0 fixed z-10 flex h-16 items-center justify-between border-b bg-white/80 backdrop-blur-md px-8 dark:bg-zinc-900/80 shadow-sm border-zinc-100 dark:border-zinc-800">
       <div className="flex items-center gap-4">

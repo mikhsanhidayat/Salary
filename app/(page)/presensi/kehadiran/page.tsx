@@ -1,6 +1,44 @@
-import React from 'react'
+'use client';
+
+import React, { useState, useEffect } from 'react'
 
 const page = () => {
+  const [currentTime, setCurrentTime] = useState<string>('00.00.00');
+  const [currentDate, setCurrentDate] = useState<string>('');
+
+  useEffect(() => {
+    // Set initial time
+    const updateTime = () => {
+      const now = new Date();
+      
+      // Format waktu HH.MM.SS
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      setCurrentTime(`${hours}.${minutes}.${seconds}`);
+      
+      // Format tanggal (Hari, Tanggal Bulan Tahun)
+      const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      
+      const day = dayNames[now.getDay()];
+      const date = now.getDate();
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+      
+      setCurrentDate(`${day}, ${date} ${month} ${year}`);
+    };
+
+    // Update time immediately
+    updateTime();
+
+    // Update time setiap 1 detik
+    const interval = setInterval(updateTime, 1000);
+
+    // Cleanup interval saat component unmount
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-zinc-50 dark:bg-black">
       {/* Sidebar Spacer (lg:pl-64) agar konten tidak tertutup sidebar fixed */}
@@ -25,8 +63,13 @@ const page = () => {
                     <i className="fi fi-rr-clock-three"></i>
                   </div>
                   <div>
-                    <div className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">12.24.38</div>
-                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Minggu, 8 Maret 2026</div>
+                    {/* waktu saat ini real time */}
+                    <div className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">
+                      {currentTime}
+                    </div>
+                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                      {currentDate}
+                    </div>
                   </div>
                 </div>
               </div>

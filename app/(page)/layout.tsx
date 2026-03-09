@@ -1,11 +1,32 @@
-import Sidebar from "@/components/sidebar";
-import Header from "@/components/header";
+'use client';
 
-export default function MasterLayout({
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Sidebar from '@/components/sidebar';
+import Header from '@/components/header';
+
+export default function PageLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
+})
+
+
+
+
+
+
+
+
+
+{
+
+   useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (!userData) {
+      window.location.href = "/sign-in";
+    }
+  }, []);
   return (
     
     <div className="flex min-h-screen bg-zinc-50 dark:bg-black">
@@ -27,4 +48,5 @@ export default function MasterLayout({
       </div>
     </div>
   );
-}   
+} 
+  
