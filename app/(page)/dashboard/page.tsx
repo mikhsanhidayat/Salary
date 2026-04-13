@@ -19,12 +19,12 @@ export default function DashboardPage() {
               <div>
                 
                 <p className="text-slate-500 dark:text-slate-400 mt-1">
-                  Here's what's happening with your payroll system today.
+                  Here's what's happening with your payroll system today
                 </p>
               </div>
 
               {/* STATS CARDS */}
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1    -6 sm:grid-cols-2 lg:grid-cols-4">
                 {/* Total Karyawan */}
                 <div className="group rounded-3xl bg-white p-6 shadow-sm border border-slate-100 dark:bg-zinc-900 dark:border-zinc-800 transition-all hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1">
                   <div className="flex items-center justify-between mb-4">

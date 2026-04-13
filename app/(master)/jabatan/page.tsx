@@ -1,7 +1,23 @@
 import React from 'react';
 import Sidebar from '@/components/sidebar';
 
+
+
+
+
+
+
+ 
+
+
 const JabatanPage = () => {
+
+  
+
+
+
+  
+  
   return (
     <div className="flex min-h-screen bg-zinc-50 dark:bg-black">
       {/* Sidebar - Hidden on mobile, shown on LG */}

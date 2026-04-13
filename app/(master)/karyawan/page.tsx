@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 
+
 export default function KaryawanPage() {
   return (
     <div className="space-y-8">
