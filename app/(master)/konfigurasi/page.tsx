@@ -1,8 +1,53 @@
 "use client";
 
-import React from "react";
+import { useEffect, useState } from "react";
+
+
+interface Konfigurasi {
+  id: number;
+  tahun: string;
+  jatah_cuti_tahunan: number;
+  nilai_uang_per_cuti: number;
+  aktif: boolean;
+}
 
 export default function KonfigurasiPage() {
+ 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [konfigurasiList, setKonfigurasiList] = useState<Konfigurasi[]>([]);
+
+   const token = localStorage.getItem("access_token");
+  const fetchKonfigurasi = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("https://payroll.politekniklp3i-tasikmalaya.ac.id/api/konfigurasi", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Gagal mengambil data konfigurasi");
+      setKonfigurasiList(data.data || data);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+   useEffect(() => {
+    if (token) {
+      fetchKonfigurasi();
+    }
+  }, [token]);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+  };
   return (
     <div className="space-y-8">
       {/* Header Title Section */}
@@ -136,27 +181,54 @@ export default function KonfigurasiPage() {
                   <th className="px-8 py-4 font-bold uppercase tracking-wider text-[10px] text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-zinc-800">
-                <tr className="group hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
-                  <td className="px-8 py-5 font-bold text-slate-400">1</td>
-                  <td className="px-8 py-5 font-black text-slate-700 dark:text-white">2024</td>
-                  <td className="px-8 py-5 font-bold text-slate-500 dark:text-slate-400">12 Hari</td>
-                  <td className="px-8 py-5 text-emerald-600 dark:text-emerald-400 font-black tabular-nums">
-                    Rp 150.000
-                  </td>
-                  <td className="px-8 py-5">
-                    <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-200">
-                      Aktif
-                    </span>
-                  </td>
-                  <td className="px-8 py-5 text-right">
-                    <div className="flex justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                      <button className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-primary rounded-xl transition-all shadow-sm hover:shadow-primary/30" title="Edit">
-                        <i className="fi fi-rr-edit text-xs"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+               <tbody className="divide-y divide-slate-50 dark:divide-zinc-800">
+                {konfigurasiList.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-8 py-16 text-center text-slate-400 italic">
+                      {loading ? "Menarik data..." : "No configuration found."}
+                    </td>
+                  </tr>
+                ) : (
+                  konfigurasiList.map((item, index) => (
+                    <tr key={item.id} className="group hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+                      <td className="px-8 py-5 font-bold text-slate-400">{index + 1}</td>
+                      <td className="px-8 py-5 font-black text-slate-700 dark:text-white group-hover:text-primary transition-colors">
+                        {item.tahun}
+                      </td>
+                      <td className="px-8 py-5 font-bold text-slate-500 dark:text-slate-400">
+                        {item.jatah_cuti_tahunan} Hari
+                      </td>
+                      <td className="px-8 py-5 text-emerald-600 dark:text-emerald-400 font-black tabular-nums">
+                        {formatCurrency(item.nilai_uang_per_cuti)}
+                      </td>
+                      <td className="px-8 py-5">
+                        {item.aktif ? (
+                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-200">Aktif</span>
+                        ) : (
+                          <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest border border-rose-200">Off</span>
+                        )}
+                      </td>
+                      <td className="px-8 py-5 text-right">
+                        <div className="flex justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                          {/* <button
+                            onClick={() => handleEdit(item)}
+                            className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-primary rounded-xl transition-all shadow-sm hover:shadow-primary/30"
+                            title="Edit"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-secondary rounded-xl transition-all shadow-sm hover:shadow-secondary/30"
+                            title="Hapus"
+                          >
+                            🗑️
+                          </button> */}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

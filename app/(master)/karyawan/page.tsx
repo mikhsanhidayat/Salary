@@ -1,9 +1,80 @@
 "use client";
 
-import React, { useState } from "react";
+
+import { log } from "node:console";
+import { useEffect, useState, useRef } from "react";
+
+interface Jabatan {
+  id: number;
+  jabatan: string;
+}
+
+interface Karyawan {
+  id: number;
+  nik: string;
+  nama: string;
+  email: string;
+  tempat_lahir: string;
+  tanggal_lahir: string;
+  alamat: string;
+  id_jabatan: number;
+  status_aktif: boolean;
+  jabatan?: Jabatan;
+}
+
+
+
 
 
 export default function KaryawanPage() {
+
+  const [karyawanList, setKaryawanList] = useState<Karyawan[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [jabatanList, setJabatanList] = useState<Jabatan[]>([]);
+   const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+
+  const fetchKaryawan = async () => {
+ setLoading(true);
+ const res = await fetch("https://payroll.politekniklp3i-tasikmalaya.ac.id/api/karyawan", {
+ headers: {
+ Authorization: `Bearer ${token}`,
+ Accept: "application/json",
+ },
+ });
+ const data = await res.json();
+ if (!res.ok) throw new Error(data.message);
+ setKaryawanList(data.data || data);
+ setLoading(false);
+};
+
+const fetchJabatan = async () => {
+    try {
+      const res = await fetch("https://payroll.politekniklp3i-tasikmalaya.ac.id/api/jabatan", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+      const data = await res.json();
+      
+      
+      if (res.ok) {
+        setJabatanList(data.data || data);
+      }
+    } catch (err: unknown) {
+      console.error("Fetch Jabatan Error:", err);
+    }
+  };
+
+useEffect(() => {
+ if (token) {
+ fetchJabatan();
+ fetchKaryawan();
+ }
+}, [token]);
+
+
+
   return (
     <div className="space-y-8">
       {/* Header Title Section */}
@@ -154,18 +225,59 @@ export default function KaryawanPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 dark:divide-zinc-800">
-                <TableRow 
-                  no="1" 
-                  nama="Ahmad Fauzi" 
-                  jabatan="Manager IT" 
-                  status="Aktif" 
-                />
-                <TableRow 
-                  no="2" 
-                  nama="Siti Aminah" 
-                  jabatan="HR Specialist" 
-                  status="Aktif" 
-                />
+                {karyawanList.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-8 py-16 text-center text-slate-400 italic">
+                      {loading ? "Menarik data..." : "No employees found."}
+                    </td>
+                  </tr>
+                ) : (
+                  karyawanList.map((item, index) => (
+                    <tr key={item.id} className="group hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+                      <td className="px-8 py-5 font-bold text-slate-400">{index + 1}</td>
+                      <td className="px-8 py-5 font-bold text-slate-700 dark:text-white group-hover:text-primary transition-colors">
+                        {item.nama}
+                      </td>
+                      <td className="px-8 py-5">
+                        <span className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-zinc-800 text-[11px] font-bold text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-zinc-700 group-hover:bg-white dark:group-hover:bg-primary/20 transition-all">
+                          {item.jabatan?.jabatan || jabatanList.find(j => j.id === item.id_jabatan)?.jabatan || "N/A"}
+                        </span>
+                      </td>
+                      <td className="px-8 py-5">
+                        {item.status_aktif ? (
+                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-200">Aktif</span>
+                        ) : (
+                          <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest border border-rose-200">Off</span>
+                        )}
+                      </td>
+                      <td className="px-8 py-5 text-right">
+                        <div className="flex justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                          {/* <button
+                            onClick={() => setSelectedKaryawan(item)}
+                            className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-tertiary rounded-xl transition-all shadow-sm hover:shadow-tertiary/30"
+                            title="Detail"
+                          >
+                            ℹ️
+                          </button>
+                          <button
+                            onClick={() => handleEdit(item)}
+                            className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-primary rounded-xl transition-all shadow-sm hover:shadow-primary/30"
+                            title="Edit"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-secondary rounded-xl transition-all shadow-sm hover:shadow-secondary/30"
+                            title="Hapus"
+                          >
+                            🗑️
+                          </button> */}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
