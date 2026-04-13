@@ -9,7 +9,19 @@ const JabatanPage = () => {
   const [loading, setLoading] = useState(false);
   const [jabatanList, setJabatanList] = useState<Jabatan[]>([]);
   const [error, setError] = useState("");
-  const token = localStorage.getItem("access_token");
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [namaJabatan, setNamaJabatan] = useState("");
+  const [idDivisi, setIdDivisi] = useState<string>("");
+  const [gajiPokok, setGajiPokok] = useState("");
+
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
+
+  // Searchable Select states
+  const [searchDivisi, setSearchDivisi] = useState("");
+  const selectRef = useRef<HTMLDivElement>(null);
 
   interface Divisi {
     id: number;
@@ -76,12 +88,113 @@ const JabatanPage = () => {
     }
   }, [token]);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const url = editingId
+      ? `https://payroll.politekniklp3i-tasikmalaya.ac.id/api/jabatan/${editingId}`
+      : "https://payroll.politekniklp3i-tasikmalaya.ac.id/api/jabatan";
+
+    const method = editingId ? "PATCH" : "POST";
+
+    try {
+      const res = await fetch(url, {
+        method: method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          jabatan: namaJabatan,
+          id_divisi: parseInt(idDivisi),
+          gaji_pokok: parseInt(gajiPokok),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          data.message ||
+            `Gagal ${editingId ? "mengupdate" : "menambahkan"} jabatan`,
+        );
+      }
+
+      setNamaJabatan("");
+      setIdDivisi("");
+      setGajiPokok("");
+      setEditingId(null);
+      fetchJabatan();
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (item: Jabatan) => {
+    setEditingId(item.id);
+    setNamaJabatan(item.jabatan);
+    setIdDivisi(item.id_divisi.toString());
+    setGajiPokok(item.gaji_pokok.toString());
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus jabatan ini?")) return;
+    try {
+      const res = await fetch(`https://payroll.politekniklp3i-tasikmalaya.ac.id/api/jabatan/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Gagal menghapus jabatan");
+      }
+      fetchJabatan();
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
+
+   const filteredDivisi = divisiList.filter(d => 
+    d.divisi.toLowerCase().includes(searchDivisi.toLowerCase())
+  );
+
+  // Cleanup searchable select when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        setIsSelectOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedDivisiLabel =
+    divisiList.find((d) => d.id.toString() === idDivisi)?.divisi ||
+    "Pilih Divisi";
   const getDivisiName = (id: number) => {
-    return divisiList.find(d => d.id === id)?.divisi || "N/A";
+    return divisiList.find((d) => d.id === id)?.divisi || "N/A";
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(amount);
   };
 
   return (
@@ -115,7 +228,7 @@ const JabatanPage = () => {
                       Tambah Jabatan
                     </h2>
                   </div>
-                  <form className="space-y-5">
+                  <form className="space-y-5" onSubmit={handleSubmit}>
                     <div>
                       <label className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">
                         Nama Jabatan
@@ -123,23 +236,76 @@ const JabatanPage = () => {
                       <input
                         type="text"
                         placeholder="Contoh: Manager IT"
+                        value={namaJabatan}
+                        onChange={(e) => setNamaJabatan(e.target.value)}
                         className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800"
                         required
                       />
                     </div>
 
-                    <div className="relative">
+                    <div className="relative" ref={selectRef}>
                       <label className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">
                         Pilih Divisi
                       </label>
-                      <div className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800 flex justify-between items-center group text-slate-400">
-                        <span>Pilih Divisi</span>
-                        <span className="group-hover:text-primary transition-colors text-[10px]">
+                      <div
+                        onClick={() => setIsSelectOpen(!isSelectOpen)}
+                        className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800 flex justify-between items-center group"
+                      >
+                        <span
+                          className={
+                            idDivisi
+                              ? "text-slate-900 dark:text-white font-medium"
+                              : "text-slate-400"
+                          }
+                        >
+                          {selectedDivisiLabel}
+                        </span>
+                        <span className="text-slate-400 group-hover:text-primary transition-colors">
                           ▼
                         </span>
                       </div>
-                    </div>
 
+                      {/* BAGIAN YANG HILANG DI CODE KEDUA: Logic Dropdown Menu */}
+                      {isSelectOpen && (
+                        <div className="absolute z-50 mt-2 w-full rounded-2xl border border-slate-100 bg-white p-2 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden ring-1 ring-slate-200/50">
+                          <div className="mb-2 px-1">
+                            <input
+                              type="text"
+                              placeholder="Cari divisi..."
+                              value={searchDivisi}
+                              onChange={(e) => setSearchDivisi(e.target.value)}
+                              className="w-full rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5 text-xs outline-none focus:border-primary dark:border-zinc-800 dark:bg-zinc-800"
+                              onClick={(e) => e.stopPropagation()} // Supaya saat ngetik dropdown gak nutup
+                            />
+                          </div>
+                          <div className="max-h-56 overflow-y-auto custom-scrollbar">
+                            {filteredDivisi.length === 0 ? (
+                              <p className="p-4 text-center text-xs text-slate-400 italic">
+                                Tidak ditemukan
+                              </p>
+                            ) : (
+                              filteredDivisi.map((d) => (
+                                <div
+                                  key={d.id}
+                                  onClick={() => {
+                                    setIdDivisi(d.id.toString());
+                                    setIsSelectOpen(false);
+                                    setSearchDivisi("");
+                                  }}
+                                  className={`rounded-xl px-4 py-3 text-sm font-medium cursor-pointer transition-all mb-1 last:mb-0 ${
+                                    idDivisi === d.id.toString()
+                                      ? "bg-primary text-white"
+                                      : "hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-600 dark:text-slate-300"
+                                  }`}
+                                >
+                                  {d.divisi}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <label className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">
                         Gaji Pokok
@@ -151,6 +317,8 @@ const JabatanPage = () => {
                         <input
                           type="number"
                           placeholder="0"
+                          value={gajiPokok}
+                          onChange={(e) => setGajiPokok(e.target.value)}
                           className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 py-3 text-sm font-bold outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800"
                           required
                         />
@@ -160,9 +328,10 @@ const JabatanPage = () => {
                     <div className="flex gap-3 pt-2">
                       <button
                         type="submit"
+                        disabled={loading}
                         className="flex-1 rounded-xl bg-blue-950 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 active:scale-[0.98] "
                       >
-                        Simpan
+                        {loading ? "Process..." : editingId ? "Update" : "Simpan"}
                       </button>
                     </div>
                   </form>
@@ -232,20 +401,20 @@ const JabatanPage = () => {
                               </td>
                               <td className="px-8 py-5 text-right">
                                 <div className="flex justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                  {/* <button
-                            onClick={() => handleEdit(item)}
-                            className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-primary rounded-xl transition-all shadow-sm hover:shadow-primary/30"
-                            title="Edit"
-                          >
-                            ✏️
-                          </button>
-                          <button
+                                  <button
+                                    onClick={() => handleEdit(item)}
+                                    className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-primary rounded-xl transition-all shadow-sm hover:shadow-primary/30"
+                                    title="Edit"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
                             onClick={() => handleDelete(item.id)}
                             className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-secondary rounded-xl transition-all shadow-sm hover:shadow-secondary/30"
                             title="Hapus"
                           >
                             🗑️
-                          </button> */}
+                          </button>
                                 </div>
                               </td>
                             </tr>

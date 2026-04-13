@@ -72,6 +72,8 @@ const Page = () => {
         }),
       });
 
+   
+
       let data;
       const contentType = res.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
@@ -95,6 +97,51 @@ const Page = () => {
       console.error("Fetch error:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+     // ===============================
+  // EDIT DIVISI
+  // ===============================
+  const handleEdit = (divisi: Divisi) => {
+    setEditingId(divisi.id);
+    setNamaDivisi(divisi.divisi);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+    const handleCancelEdit = () => {
+    setEditingId(null);
+    setNamaDivisi("");
+  };
+
+  // ===============================
+  // DELETE DIVISI
+  // ===============================
+  const handleDelete = async (id: number) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus divisi ini?")) return;
+
+    try {
+        const res = await fetch(
+          `https://payroll.politekniklp3i-tasikmalaya.ac.id/api/divisi/${id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Gagal menghapus divisi");
+      }
+
+      fetchDivisi();
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     }
   };
 
@@ -156,6 +203,15 @@ const Page = () => {
                       >
                         {loading ? "Process..." : editingId ? "Update" : "Simpan"}
                       </button>
+                      {editingId && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-600 transition-all hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                >
+                  Batal
+                </button>
+              )}
                     </div>
                   </form>
                 </div>
@@ -210,20 +266,20 @@ const Page = () => {
                               </td>
                               <td className="px-8 py-5 text-right">
                                 <div className="flex justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                  {/* <button
+                                  <button
                                     onClick={() => handleEdit(divisi)}
                                     className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-primary rounded-xl transition-all shadow-sm hover:shadow-primary/30"
                                     title="Edit"
                                   >
                                     ✏️
-                                   </button> */}
-                                  {/*  <button
+                                   </button>
+                                   <button
                                     onClick={() => handleDelete(divisi.id)}
                                     className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-secondary rounded-xl transition-all shadow-sm hover:shadow-secondary/30"
                                     title="Hapus"
                                   >
                                     🗑️
-                                  </button> */}
+                                  </button>
                                 </div>
                               </td>
                             </tr>

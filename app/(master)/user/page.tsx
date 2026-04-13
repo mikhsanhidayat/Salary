@@ -14,7 +14,15 @@ export default function UserPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const token = localStorage.getItem("access_token");
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  // Form states
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user");
+
+   const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
   const fetchUser = async () => {
     setLoading(true);
     try {
@@ -37,6 +45,94 @@ export default function UserPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const  handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const url = editingId
+      ? `https://payroll.politekniklp3i-tasikmalaya.ac.id/api/master-user/${editingId}`
+      : "https://payroll.politekniklp3i-tasikmalaya.ac.id/api/master-user";
+    
+    const method = editingId ? "PATCH" : "POST";
+
+    const body: any = {
+      name,
+      email,
+      role,
+    };
+
+    if (password || !editingId) {
+      body.password = password;
+    }
+
+    try {
+      const res = await fetch(url, {
+        method: method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || `Gagal ${editingId ? 'mengupdate' : 'menambahkan'} user`);
+      }
+
+      resetForm();
+      fetchUser();
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (item: User) => {
+    setEditingId(item.id);
+    setName(item.name);
+    setEmail(item.email);
+    setRole(item.role);
+    setPassword(""); // Clear password during edit
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus data user ini?")) return;
+    try {
+      const res = await fetch(`https://payroll.politekniklp3i-tasikmalaya.ac.id/api/master-user/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Gagal menghapus user");
+      }
+      fetchUser();
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setName("");
+    setEmail("");
+    setPassword("");
+    setRole("user");
+    setEditingId(null);
   };
 
   useEffect(() => {
@@ -69,7 +165,7 @@ export default function UserPage() {
             </h2>
           </div>
 
-          <form className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">
                 Nama
@@ -77,6 +173,8 @@ export default function UserPage() {
               <input
                 type="text"
                 placeholder="Nama Lengkap"
+                 value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800"
                 required
               />
@@ -89,6 +187,8 @@ export default function UserPage() {
               <input
                 type="email"
                 placeholder="email@example.com"
+                  value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800"
                 required
               />
@@ -101,8 +201,10 @@ export default function UserPage() {
               <input
                 type="password"
                 placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800"
-                required
+               required={!editingId}
               />
             </div>
 
@@ -117,21 +219,34 @@ export default function UserPage() {
               <select
                 id="role"
                 name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
                 className="border border-gray-200 dark:bg-zinc-800 text-gray-500 rounded-xl py-2 px-4 w-full my-1"
               >
-                <option value="">Pilih Role</option>
-                <option value="">Admin</option>
-                <option value="">User</option>
+                <option value="user">User / Karyawan</option>
+                <option value="admin">Admin HRD</option>
               </select>
             </div>
 
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
+                disabled={loading}
                 className="flex-1 rounded-xl bg-blue-500 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-blue-500/30 active:scale-[0.98]"
               >
-                Simpan User
+                {loading ? "Process..." : editingId ? "Update" : "Simpan"}
               </button>
+
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-600 transition-all hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                >
+                  Batal
+                </button>
+              )}
+              
             </div>
           </form>
         </div>
@@ -197,7 +312,7 @@ export default function UserPage() {
                       </td>
                       <td className="px-8 py-5 text-right">
                         <div className="flex justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                          {/* <button
+                          <button
                             onClick={() => handleEdit(item)}
                             className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-primary rounded-xl transition-all shadow-sm hover:shadow-primary/30"
                             title="Edit"
@@ -210,7 +325,7 @@ export default function UserPage() {
                             title="Hapus"
                           >
                             🗑️
-                          </button> */}
+                          </button>
                         </div>
                       </td>
                     </tr>
