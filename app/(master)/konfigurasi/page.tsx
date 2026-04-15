@@ -17,7 +17,8 @@ export default function KonfigurasiPage() {
   const [error, setError] = useState("");
   const [konfigurasiList, setKonfigurasiList] = useState<Konfigurasi[]>([]);
 
-   const token = localStorage.getItem("access_token");
+   const token =
+    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
   const fetchKonfigurasi = async () => {
     setLoading(true);
     try {
