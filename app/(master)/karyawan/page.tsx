@@ -204,7 +204,7 @@ export default function KaryawanPage() {
           Management Karyawan
         </h2>
         <p className="text-slate-500 dark:text-slate-400 mt-1">
-          Manage employee records and information.
+          Manage employee records and information
         </p>
       </div>
 
