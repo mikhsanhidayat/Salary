@@ -16,6 +16,13 @@ export default function KonfigurasiPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [konfigurasiList, setKonfigurasiList] = useState<Konfigurasi[]>([]);
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+    // Form states
+  const [tahun, setTahun] = useState("");
+  const [jatahCuti, setJatahCuti] = useState("");
+  const [nilaiUang, setNilaiUang] = useState("");
+  const [aktif, setAktif] = useState(true);
 
    const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
@@ -45,6 +52,91 @@ export default function KonfigurasiPage() {
       fetchKonfigurasi();
     }
   }, [token]);
+
+   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const url = editingId
+      ? `https://payroll.politekniklp3i-tasikmalaya.ac.id/api/konfigurasi/${editingId}`
+      : "https://payroll.politekniklp3i-tasikmalaya.ac.id/api/konfigurasi";
+    
+    const method = editingId ? "PATCH" : "POST";
+
+    try {
+      const res = await fetch(url, {
+        method: method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          tahun,
+          jatah_cuti_tahunan: parseInt(jatahCuti),
+          nilai_uang_per_cuti: parseInt(nilaiUang),
+          aktif: aktif,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || `Gagal ${editingId ? 'mengupdate' : 'menambahkan'} konfigurasi`);
+      }
+
+      resetForm();
+      fetchKonfigurasi();
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+   const handleEdit = (item: Konfigurasi) => {
+    setEditingId(item.id);
+    setTahun(item.tahun);
+    setJatahCuti(item.jatah_cuti_tahunan.toString());
+    setNilaiUang(item.nilai_uang_per_cuti.toString());
+    setAktif(item.aktif);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus konfigurasi ini?")) return;
+    try {
+      const res = await fetch(`https://payroll.politekniklp3i-tasikmalaya.ac.id/api/konfigurasi/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Gagal menghapus konfigurasi");
+      }
+      fetchKonfigurasi();
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setTahun("");
+    setJatahCuti("");
+    setNilaiUang("");
+    setAktif(true);
+    setEditingId(null);
+  };
+
+  
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
@@ -85,7 +177,7 @@ export default function KonfigurasiPage() {
             </div>
           </div>
 
-          <form className="space-y-5">
+          <form  onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">
                 Tahun
@@ -93,6 +185,8 @@ export default function KonfigurasiPage() {
               <input
                 type="number"
                 placeholder="2024"
+                value={tahun}
+                onChange={(e) => setTahun(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800"
                 required
               />
@@ -106,6 +200,8 @@ export default function KonfigurasiPage() {
                 <input
                   type="number"
                   placeholder="12"
+                  value={jatahCuti}
+                  onChange={(e) => setJatahCuti(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800"
                   required
                 />
@@ -126,6 +222,8 @@ export default function KonfigurasiPage() {
                 <input
                   type="number"
                   placeholder="0"
+                  value={nilaiUang}
+                  onChange={(e) => setNilaiUang(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 py-3 text-sm font-bold outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800"
                   required
                 />
@@ -137,7 +235,8 @@ export default function KonfigurasiPage() {
                 Status
               </label>
               <div className="relative">
-                <select className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800">
+                <select value={aktif ? "true" : "false"}
+                onChange={(e) => setAktif(e.target.value === "true")} className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700 dark:bg-zinc-800">
                   <option value="true">Aktif</option>
                   <option value="false">Tidak Aktif</option>
                 </select>
@@ -146,13 +245,19 @@ export default function KonfigurasiPage() {
                 </div>
               </div>
             </div>
+             {error && (
+              <div className="rounded-xl bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/10 dark:text-red-400 border border-red-100 dark:border-red-900/20">
+                {error}
+              </div>
+            )}
 
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
+                disabled={loading}
                 className="flex-1 rounded-xl bg-blue-500 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-600 hover:shadow-blue-500/30 active:scale-[0.98]"
               >
-                Simpan Konfigurasi
+                {loading ? "Process..." : editingId ? "Update" : "Simpan"}
               </button>
             </div>
           </form>
@@ -211,7 +316,7 @@ export default function KonfigurasiPage() {
                       </td>
                       <td className="px-8 py-5 text-right">
                         <div className="flex justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                          {/* <button
+                          <button
                             onClick={() => handleEdit(item)}
                             className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-primary rounded-xl transition-all shadow-sm hover:shadow-primary/30"
                             title="Edit"
@@ -224,7 +329,7 @@ export default function KonfigurasiPage() {
                             title="Hapus"
                           >
                             🗑️
-                          </button> */}
+                          </button>
                         </div>
                       </td>
                     </tr>
