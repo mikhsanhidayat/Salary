@@ -502,6 +502,87 @@ export default function KaryawanPage() {
           </div>
         </div>
       </div>
+      {/* ================= DETAIL MODAL ================= */}
+      {selectedKaryawan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-zinc-900 animate-in zoom-in-95 duration-300">
+            <div className="bg-primary p-8 text-white relative overflow-hidden">
+               <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+               <div className="absolute -left-8 -bottom-8 h-24 w-24 rounded-full bg-tertiary/20 blur-xl" />
+               
+               <div className="relative z-10">
+                 <h3 className="text-2xl font-bold tracking-tight">{selectedKaryawan.nama}</h3>
+                 <p className="text-white/70 text-sm font-medium mt-1">{selectedKaryawan.jabatan?.jabatan || jabatanList.find(j => j.id === selectedKaryawan.id_jabatan)?.jabatan || "No Position"}</p>
+               </div>
+               
+               <button 
+                onClick={() => setSelectedKaryawan(null)}
+                className="absolute right-6 top-6 h-10 w-10 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all"
+               >
+                 ✕
+               </button>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-1.5 block">NIK</label>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white tracking-widest">{selectedKaryawan.nik}</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-1.5 block">Status</label>
+                  <div>
+                    {selectedKaryawan.status_aktif ? (
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-wider border border-emerald-200">Aktif</span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-wider border border-rose-200">Off</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-t border-slate-50 dark:border-zinc-800 pt-6">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-2 block">Email Address</label>
+                <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
+                   <span className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/10 flex items-center justify-center text-indigo-500 text-xs">✉</span>
+                   <p className="text-sm font-semibold">{selectedKaryawan.email}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-6 border-t border-slate-50 dark:border-zinc-800 pt-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-2 block">Birth Information</label>
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    {selectedKaryawan.tempat_lahir}, {selectedKaryawan.tanggal_lahir ? new Date(selectedKaryawan.tanggal_lahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : "-"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-2 block">Office Location</label>
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate">Headquarters</p>
+                </div>
+              </div>
+              
+              <div className="border-t border-slate-50 dark:border-zinc-800 pt-6">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-2 block">Home Address</label>
+                <div className="rounded-2xl bg-slate-50 dark:bg-zinc-800/50 p-4">
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                    {selectedKaryawan.alamat || "No address provided"}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-slate-50 dark:bg-zinc-800/50 p-6 flex justify-end">
+               <button 
+                onClick={() => setSelectedKaryawan(null)}
+                className="w-full rounded-2xl bg-white border border-slate-200 px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all dark:bg-zinc-900 dark:border-zinc-700 dark:text-slate-400 dark:hover:bg-zinc-800 shadow-sm"
+               >
+                 Close Detailed View
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
